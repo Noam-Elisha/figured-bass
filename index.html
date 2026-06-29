@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Figured Bass — thoroughbass practice</title>
+<meta name="description" content="Generate bass lines with figured-bass notation and practice realizing thoroughbass at the keyboard. Difficulty and length controls, engraved on a bass staff, built for the iPad.">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%237a2e2b'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' fill='%23f6f1e7' font-family='serif'%3E%F0%9D%84%A2%3C/text%3E%3C/svg%3E">
+<script>try{if(JSON.parse(localStorage.getItem('fb.settings.v1')||'{}').theme==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="wordmark">
+      <span class="wordmark-clef" aria-hidden="true">𝄢</span>
+      <h1>Figured <em>Bass</em></h1>
+    </div>
+    <div class="masthead-side">
+      <button class="btn-text" id="btn-theme" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">☾</button>
+      <button class="btn-text" id="btn-about" type="button" aria-label="About" title="About" style="font-size:15px;font-weight:700;">?</button>
+    </div>
+  </div>
+  <div class="staff-rule" aria-hidden="true"></div>
+</header>
+
+<main class="layout">
+  <section class="card controls anim-1" aria-label="Exercise settings">
+    <div class="control">
+      <span class="field-label">Source</span>
+      <div class="seg seg-auto" id="seg-source" role="radiogroup" aria-label="Source"></div>
+    </div>
+    <div class="control" id="ctl-difficulty">
+      <span class="field-label">Difficulty</span>
+      <div class="seg" id="seg-difficulty" role="radiogroup" aria-label="Difficulty"></div>
+    </div>
+    <div class="control">
+      <span class="field-label">Length</span>
+      <div class="seg" id="seg-length" role="radiogroup" aria-label="Length in phrases"></div>
+    </div>
+    <div class="control grow">
+      <label class="field-label" for="sel-key">Key</label>
+      <select id="sel-key" aria-label="Key"></select>
+    </div>
+    <div class="control-actions">
+      <button class="btn primary" id="btn-new" type="button">New line</button>
+    </div>
+  </section>
+
+  <section class="card stage anim-2">
+    <div class="givens" id="givens" aria-live="polite"></div>
+    <div id="staff"></div>
+    <div class="empty-hint" id="empty-hint" hidden>
+      <span class="noto" aria-hidden="true">𝄢</span>
+      Choose a difficulty, length and key, then tap <strong>New line</strong>.
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="staff-rule" aria-hidden="true"></div>
+  <div class="footer-inner">
+    <span>Realize the figures at the keyboard — figures are intervals above the written bass.</span>
+    <span>Engraving by <a href="https://www.abcjs.net" target="_blank" rel="noopener">abcjs</a> · works offline</span>
+  </div>
+</footer>
+
+<dialog id="dlg-about">
+  <h2>Figured <em>Bass</em></h2>
+  <p>A practice room for <strong>thoroughbass</strong>. Each exercise is a bass line engraved on the bass
+  staff with figured-bass numerals beneath — either freshly <strong>generated</strong> or a real
+  <strong>Bach</strong> chorale with his own figures. Read the figures and realize the harmony at the
+  keyboard — there is intentionally no playback and no answer.</p>
+  <h3>How to read the figures</h3>
+  <p>Numbers are <em>intervals above the written bass note</em> (not Roman numerals); their quality comes
+  from the key. Larger numbers sit on top. Common shorthands:</p>
+  <div class="legend">
+    <span>(none)</span><span>root-position triad (5/3 understood)</span>
+    <span><b>6</b></span><span>first-inversion triad (6/3)</span>
+    <span><b>6/4</b></span><span>second-inversion triad</span>
+    <span><b>7</b></span><span>root-position seventh chord</span>
+    <span><b>6/5 · 4/3 · 4/2</b></span><span>inversions of a seventh chord</span>
+    <span><b>♯ · ♭ · ♮</b></span><span>an accidental alone alters the 3rd above the bass; beside a number it alters that interval</span>
+    <span><b>4–3</b></span><span>a suspension: the upper voice moves over a held bass</span>
+  </div>
+  <h3>Controls</h3>
+  <p><strong>Source</strong> chooses generated lines or real Bach chorales (from the BCFB corpus, with
+  Bach's own figures, transposed for variety). <strong>Difficulty</strong> (generated only) sets the harmonic vocabulary: <em>1</em> = triads and the dominant seventh
+  (blank · 6 · 6/4 · 7); <em>2</em> adds ii, leading-tone chords and inverted sevenths (6/5 · 4/3 · 4/2);
+  <em>3</em> adds suspensions and secondary dominants; <em>4</em> leans further into chromatic harmony;
+  <em>5</em> adds mode mixture, the Neapolitan and augmented sixths. <strong>Length</strong> is the number of
+  two-bar phrases. <strong>Key</strong> can be fixed or random (keys up to four sharps or flats). Press
+  <kbd>N</kbd> for a new line.</p>
+  <h3>Credits</h3>
+  <p style="font-size:12.5px;color:var(--ink-soft)">Bach figures from the <a href="https://github.com/juyaolongpaul/Bach_chorale_FB" target="_blank" rel="noopener">BCFB / FiBaC corpus</a>
+  (Ju et al., CC BY 4.0; music is public domain). Engraving by <a href="https://www.abcjs.net" target="_blank" rel="noopener">abcjs</a> (MIT).
+  Fonts: Fraunces, Inter, Noto Music (SIL OFL).</p>
+  <form method="dialog"><button class="btn primary">Close</button></form>
+</dialog>
+
+<script src="js/vendor/abcjs-basic-min.js"></script>
+<script src="js/data/bach-fb.js"></script>
+<script src="js/rng.js"></script>
+<script src="js/theory.js"></script>
+<script src="js/figures.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/render.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

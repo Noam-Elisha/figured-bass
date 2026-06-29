@@ -1,0 +1,9 @@
+# the BCFB corpus is fetched on demand to rebuild js/data/bach-fb.js (see README)
+tools/bcfb-src/
+
+# os / editor junk
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
