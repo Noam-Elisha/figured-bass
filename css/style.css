@@ -60,6 +60,8 @@ body {
   font-size: 15px;
   line-height: 1.5;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -85,7 +87,7 @@ body {
 .masthead-side { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
 /* ---------- layout ---------- */
-.layout { display: flex; flex-direction: column; gap: 16px; padding: 18px clamp(14px, 4vw, 40px) 26px; max-width: 1180px; margin: 0 auto; }
+.layout { display: flex; flex-direction: column; gap: 16px; padding: 18px clamp(14px, 4vw, 40px) 26px; max-width: 1180px; width: 100%; margin: 0 auto; flex: 1 0 auto; }
 
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 .anim-1, .anim-2 { animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }
