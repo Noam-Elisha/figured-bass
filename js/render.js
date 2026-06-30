@@ -31,6 +31,17 @@
     return letter + ','.repeat(4 - oct);
   }
 
+  function gcd(a, b) { while (b) { const t = a % b; a = b; b = t; } return a; }
+  // duration as an ABC length multiplier of L:1/8 (e.g. eighth='' , quarter='2',
+  // sixteenth='/2', dotted quarter='3', dotted eighth='3/4'). Proper fractions
+  // (not decimals) so abcjs renders sub-quarter notes correctly.
+  function durStr(dur) {
+    const g = gcd(dur, UNIT) || 1;
+    const n = dur / g, d = UNIT / g;
+    if (d === 1) return n === 1 ? '' : String(n);
+    return (n === 1 ? '' : String(n)) + '/' + d;
+  }
+
   // Build the ABC source for the bass voice as one continuous line — abcjs
   // reflows it to as many bars per system as the width allows and justifies each
   // full line. Barlines come from explicit per-event `endBar` flags (Bach data)
@@ -44,14 +55,19 @@
     const evs = model.events;
     const explicitBars = evs.some((e) => 'endBar' in e);
     const barLen = (model.meter.num / model.meter.den) * 4 * TPQ;
+    const beatLen = model.meter.den === 8 ? TPQ * 1.5 : TPQ; // beam by dotted-quarter in compound, else quarter
 
     let cur = '';
     let barTick = 0;
     let acc = new Map();
+    let prev = null, justBar = false;
     evs.forEach((ev, idx) => {
+      const onset = barTick;
+      const beat = Math.floor(onset / beatLen);
+      const isRest = ev.step < 0;
       let tok = '';
       if (ev.fermata) tok += '!fermata!';
-      if (ev.step < 0) {
+      if (isRest) {
         tok += 'z';
       } else {
         const key = `${ev.step}:${ev.oct}`;
@@ -59,19 +75,25 @@
         if (ev.pitchAlter !== expected) { tok += ACC[ev.pitchAlter]; acc.set(key, ev.pitchAlter); }
         tok += pitchStr(ev.step, ev.oct);
       }
-      const units = ev.dur / UNIT;
-      if (units !== 1) tok += Number.isInteger(units) ? units : units.toFixed(3).replace(/\.?0+$/, '');
-      if (ev.tie && ev.step >= 0) tok += '-';
-      cur += (cur && !cur.endsWith(' ') ? ' ' : '') + tok;
+      tok += durStr(ev.dur);
+      if (ev.tie && !isRest) tok += '-';
+
+      // Beam consecutive sub-quarter notes within one beat (no separating space);
+      // otherwise separate with a space so abcjs flags/spaces them.
+      let sep = ' ';
+      if (cur === '') sep = '';
+      else if (!justBar && !isRest && ev.dur < TPQ && prev && !prev.rest && prev.dur < TPQ && prev.beat === beat) sep = '';
+      cur += sep + tok;
 
       barTick += ev.dur;
+      justBar = false;
       const atBar = explicitBars ? ev.endBar : barTick >= barLen - 0.5;
       if (atBar) {
         barTick = 0; acc = new Map();
-        if (idx !== evs.length - 1) cur += ' |';
+        if (idx !== evs.length - 1) { cur += ' |'; justBar = true; }
       }
+      prev = { dur: ev.dur, rest: isRest, beat };
     });
-    if (!cur.trimEnd().endsWith('|')) cur = cur.trimEnd();
     cur = cur.replace(/\s*\|?\s*$/, '') + ' |]';
     return head.concat([cur.trim()]).join('\n') + '\n';
   }
