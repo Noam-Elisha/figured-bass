@@ -25,8 +25,8 @@ Pick a **Source**:
   from the underlying chord and inversion, so the figures are always right.
 - **Bach** — a real chorale from the **BCFB / FiBaC corpus** (122 clean four-part chorales) with
   **Bach's own figures** from the NBA edition, shown a chosen number of fermata-delimited phrases
-  at a time, and **transposed** to a fresh key each time for variety (the figures' accidentals are
-  recomputed for the new key).
+  at a time. A **Transpose** toggle moves each chorale to a fresh key for variety (the key signature
+  and the figures' accidentals are recomputed for the new key); turn it off to keep the original key.
 
 The engraving reflows to the screen width — more bars per line on a PC, fewer on an iPad — and
 justifies each full system, so it looks like a natural score on either device.

@@ -34,7 +34,7 @@
   const keyObj = (k) => ({ tonic: { step: k.step, alter: k.alter }, mode: k.mode });
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-  const DEFAULTS = { source: 'generated', difficulty: 2, length: 2, key: 'rand-any', theme: 'light' };
+  const DEFAULTS = { source: 'generated', difficulty: 2, length: 2, key: 'rand-any', transpose: true, theme: 'light' };
   let state = load();
   let current = null;
 
@@ -135,12 +135,19 @@
   function buildBachModel() {
     if (!bachData.length) return null;
     const sel = state.key;
+    const transpose = state.transpose !== false;
     let modeWanted = null, targetKeyEntry = null;
     if (sel === 'rand-major') modeWanted = 'major';
     else if (sel === 'rand-minor') modeWanted = 'minor';
     else if (sel !== 'rand-any') { targetKeyEntry = KEYS[+sel]; modeWanted = targetKeyEntry && targetKeyEntry.mode; }
 
     let pool = modeWanted ? bachData.filter((c) => c.key.mode === modeWanted) : bachData;
+    // When NOT transposing, a specific key filters to chorales originally in it.
+    if (!transpose && targetKeyEntry) {
+      const wantSig = T.fifths(keyObj(targetKeyEntry));
+      const exact = pool.filter((c) => c.sig === wantSig);
+      if (exact.length) pool = exact;
+    }
     if (!pool.length) pool = bachData;
     const N = state.length;
     const longEnough = pool.filter((c) => c.phrases.length >= N);
@@ -148,13 +155,18 @@
     const take = Math.min(N, ch.phrases.length);
     const start = Math.floor(Math.random() * (ch.phrases.length - take + 1));
     const chosen = ch.phrases.slice(start, start + take);
+    const meta = { source: 'bach', bwv: ch.bwv, title: ch.title, meter: { num: ch.num, den: ch.den }, phrases: take };
 
-    let toKey;
-    if (targetKeyEntry) toKey = keyObj(targetKeyEntry);
-    else toKey = keyObj(pick(KEYS.filter((k) => k.mode === ch.key.mode)));
-
+    if (!transpose) {
+      // keep the chorale's original key and key signature, no transposition
+      const events = [];
+      chosen.forEach((p) => p.forEach((e) => events.push(Object.assign({ pitchAlter: e.alter }, e, (e.fb || {})))));
+      if (events.length) events[events.length - 1].endBar = true;
+      return Object.assign(meta, { sig: ch.sig, key: ch.key, events });
+    }
+    const toKey = targetKeyEntry ? keyObj(targetKeyEntry) : keyObj(pick(KEYS.filter((k) => k.mode === ch.key.mode)));
     const { events, sig } = transposeChorale(ch, chosen, toKey);
-    return { source: 'bach', bwv: ch.bwv, title: ch.title, sig, key: toKey, meter: { num: ch.num, den: ch.den }, phrases: take, events };
+    return Object.assign(meta, { sig, key: toKey, events });
   }
 
   // ---- generate + render --------------------------------------------------
@@ -200,7 +212,9 @@
   }
 
   function syncSourceUI() {
-    $('ctl-difficulty').hidden = state.source === 'bach';
+    const bach = state.source === 'bach';
+    $('ctl-difficulty').hidden = bach;       // generated only
+    $('ctl-transpose').hidden = !bach;       // bach only
   }
 
   // ---- wiring -------------------------------------------------------------
@@ -216,6 +230,10 @@
     buildSeg($('seg-difficulty'), 'difficulty',
       [1, 2, 3, 4, 5].map((n) => ({ value: n, label: String(n) })),
       state.difficulty, (v) => { state.difficulty = +v; save(); newLine(); });
+
+    buildSeg($('seg-transpose'), 'transpose',
+      [{ value: 'on', label: 'On' }, { value: 'off', label: 'Off' }],
+      state.transpose ? 'on' : 'off', (v) => { state.transpose = v === 'on'; save(); newLine(); });
 
     buildSeg($('seg-length'), 'length',
       [1, 2, 4, 6, 8].map((n) => ({ value: n, label: String(n) })),
